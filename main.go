@@ -20,23 +20,6 @@ const (
 	flagged
 )
 
-type point struct {
-	x int
-	y int
-}
-
-type tile struct {
-	char  string
-	state int
-}
-
-type mineField [][]tile
-
-type model struct {
-	field  mineField
-	cursor point
-}
-
 func initialModel() model {
 	rand.Seed(time.Now().UnixNano())
 	mineField := newMineField(newField(9, 9, 10))
@@ -97,12 +80,13 @@ func (m model) View() string {
 	for y, row := range m.field {
 		for x, col := range row {
 			c := ""
-			if col.state == hidden {
+			switch col.state {
+			case hidden:
 				c = fmt.Sprintf(" %s ", unknownRune)
-			} else if col.state == revealed {
+			case revealed:
 				c = fmt.Sprintf(" %s ", col.char)
 				c = ok.Render(c)
-			} else if col.state == flagged {
+			case flagged:
 				c = fmt.Sprintf(" %s ", flagRune)
 				c = flag.Render(c)
 			}

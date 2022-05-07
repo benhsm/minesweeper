@@ -11,6 +11,23 @@ const (
 	unknownRune = "?"
 )
 
+type point struct {
+	x int
+	y int
+}
+
+type tile struct {
+	char  string
+	state int
+}
+
+type mineField [][]tile
+
+type model struct {
+	field  mineField
+	cursor point
+}
+
 // newField takes dimensions and returns a 2D array
 // representing a randomly generated minesweeper playing field.
 // each cell is filled with either the value -1 representing a mine, or an
