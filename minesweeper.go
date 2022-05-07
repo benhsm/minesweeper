@@ -122,10 +122,39 @@ func (m mineField) flagTile(x, y int) {
 	}
 }
 
-func (m mineField) revealTile(x, y int) bool {
-	m[y][x].state = revealed
-	if m[y][x].char == mineRune {
+// revealTile reveals a tile on field m and returns true if it's a mine.
+// if the tile has no adjacent mines, surrounding tiles are also revealed.
+func (m mineField) revealTile(col, row int) bool {
+
+	if m[row][col].state == revealed {
+		// tile is already revealed and there's nothing to do
+		return false
+	}
+
+	m[row][col].state = revealed
+	if m[row][col].char == mineRune {
+		// player activated on a mine and died
 		return true
 	}
+
+	if m[row][col].char == "0" {
+		// if the tile is a "0", we need to reveal surrounding tiles, recursing if we encounter another "0"
+		height := len(m)
+		width := len(m[0])
+
+		for x := -1; x <= 1; x++ {
+			for y := -1; y <= 1; y++ {
+				posx := col + x
+				posy := row + y
+				if posx >= 0 && posx <= width-1 {
+					if posy >= 0 && posy <= height-1 {
+						// Recursively reveal 0 tiles surrounding a 0 tile
+						m.revealTile(posx, posy)
+					}
+				}
+			}
+		}
+	}
+
 	return false
 }

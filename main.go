@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var bolded = lipgloss.NewStyle().Foreground(lipgloss.Color("0")).Background(lipgloss.Color("3")).Bold(true)
+var selected = lipgloss.NewStyle().Foreground(lipgloss.Color("0")).Background(lipgloss.Color("3")).Bold(true)
 var flag = lipgloss.NewStyle().Foreground(lipgloss.Color("9")) // Red
 var ok = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))  // Green
 
@@ -44,7 +44,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor.y--
 			}
 		case "down", "j":
-			if m.cursor.y < len(m.field) {
+			if m.cursor.y < len(m.field)-1 {
 				m.cursor.y++
 			}
 		case "left", "h":
@@ -52,7 +52,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor.x--
 			}
 		case "right", "l":
-			if m.cursor.x < len(m.field[0]) {
+			if m.cursor.x < len(m.field[0])-1 {
 				m.cursor.x++
 			}
 		case "enter":
@@ -84,7 +84,7 @@ func (m model) View() string {
 				c = flag.Render(c)
 			}
 			if x == m.cursor.x && y == m.cursor.y {
-				c = bolded.Render(c)
+				c = selected.Render(c)
 			}
 			s += c
 
