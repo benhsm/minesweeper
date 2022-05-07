@@ -5,6 +5,12 @@ import (
 	"math/rand"
 )
 
+const (
+	mineRune    = "☀"
+	flagRune    = ""
+	unknownRune = "?"
+)
+
 // newField takes dimensions and returns a 2D array
 // representing a randomly generated minesweeper playing field.
 // each cell is filled with either the value -1 representing a mine, or an
@@ -78,7 +84,7 @@ func newMineField(field [][]int) mineField {
 		row := i / width // Integer division to get row
 
 		if field[row][col] == -1 {
-			result[row][col].char = "☀"
+			result[row][col].char = mineRune
 		} else {
 			result[row][col].char = fmt.Sprintf("%d", field[row][col])
 		}

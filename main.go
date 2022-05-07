@@ -74,7 +74,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "enter":
 			m.field[m.cursor.y][m.cursor.x].state = revealed
-			if m.field[m.cursor.y][m.cursor.x].char == "☀" {
+			if m.field[m.cursor.y][m.cursor.x].char == mineRune {
 				return m, tea.Quit
 			}
 		case " ":
@@ -98,12 +98,12 @@ func (m model) View() string {
 		for x, col := range row {
 			c := ""
 			if col.state == hidden {
-				c = fmt.Sprintf(" %s ", "?")
+				c = fmt.Sprintf(" %s ", unknownRune)
 			} else if col.state == revealed {
 				c = fmt.Sprintf(" %s ", col.char)
 				c = ok.Render(c)
 			} else if col.state == flagged {
-				c = fmt.Sprintf(" %s ", "")
+				c = fmt.Sprintf(" %s ", flagRune)
 				c = flag.Render(c)
 			}
 			if x == m.cursor.x && y == m.cursor.y {
