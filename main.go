@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-var bolded = lipgloss.NewStyle().Bold(true)
+var bolded = lipgloss.NewStyle().Foreground(lipgloss.Color("0")).Background(lipgloss.Color("3")).Bold(true)
 var flag = lipgloss.NewStyle().Foreground(lipgloss.Color("9")) // Red
 var ok = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))  // Green
 
@@ -36,6 +38,7 @@ type model struct {
 }
 
 func initialModel() model {
+	rand.Seed(time.Now().UnixNano())
 	mineField := newMineField(newField(9, 9, 10))
 	return model{
 		field:  mineField,
