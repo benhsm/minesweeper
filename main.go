@@ -56,19 +56,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor.x++
 			}
 		case "enter":
-			m.field[m.cursor.y][m.cursor.x].state = revealed
-			if m.field[m.cursor.y][m.cursor.x].char == mineRune {
+			if m.field.revealTile(m.cursor.x, m.cursor.y) {
+				// Player activated a mine and lost
 				return m, tea.Quit
 			}
 		case " ":
-			switch m.field[m.cursor.y][m.cursor.x].state {
-			case flagged:
-				m.field[m.cursor.y][m.cursor.x].state = hidden
-			case hidden:
-				m.field[m.cursor.y][m.cursor.x].state = flagged
-			case revealed:
-				m.field[m.cursor.y][m.cursor.x].state = revealed
-			}
+			m.field.flagTile(m.cursor.x, m.cursor.y)
 		}
 	}
 	return m, nil

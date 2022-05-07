@@ -110,3 +110,22 @@ func newMineField(field [][]int) mineField {
 
 	return result
 }
+
+func (m mineField) flagTile(x, y int) {
+	switch m[y][x].state {
+	case flagged:
+		m[y][x].state = hidden
+	case hidden:
+		m[y][x].state = flagged
+	case revealed:
+		m[y][x].state = revealed
+	}
+}
+
+func (m mineField) revealTile(x, y int) bool {
+	m[y][x].state = revealed
+	if m[y][x].char == mineRune {
+		return true
+	}
+	return false
+}
