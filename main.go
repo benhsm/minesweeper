@@ -153,7 +153,7 @@ func (m model) View() string {
 }
 
 func main() {
-	p := tea.NewProgram(initialModel())
+	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	if err := p.Start(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
