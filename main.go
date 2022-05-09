@@ -10,9 +10,17 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var selected = lipgloss.NewStyle().Foreground(lipgloss.Color("0")).Background(lipgloss.Color("3")).Bold(true)
-var flag = lipgloss.NewStyle().Foreground(lipgloss.Color("9")) // Red
-var ok = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))  // Green
+const banner = `▙▗▌▗                             
+▌▘▌▄ ▛▀▖▞▀▖▞▀▘▌  ▌▞▀▖▞▀▖▛▀▖▞▀▖▙▀▖
+▌ ▌▐ ▌ ▌▛▀ ▝▀▖▐▐▐ ▛▀ ▛▀ ▙▄▘▛▀ ▌  
+▘ ▘▀▘▘ ▘▝▀▘▀▀  ▘▘ ▝▀▘▝▀▘▌  ▝▀▘▘  `
+
+var (
+	selected   = lipgloss.NewStyle().Foreground(lipgloss.Color("0")).Background(lipgloss.Color("3")).Bold(true)
+	flag       = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))  // Red
+	ok         = lipgloss.NewStyle().Foreground(lipgloss.Color("10")) // Green
+	fieldStyle = lipgloss.NewStyle().Border(lipgloss.RoundedBorder())
+)
 
 const (
 	hidden = iota
@@ -24,8 +32,10 @@ func initialModel() model {
 	rand.Seed(time.Now().UnixNano())
 	mineField := newMineField(newField(9, 9, 10))
 	return model{
-		field:  mineField,
-		cursor: point{0, 0},
+		field:          mineField,
+		cursor:         point{0, 0},
+		gameState:      playing,
+		tilesRemaining: 71,
 	}
 }
 
@@ -34,11 +44,27 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// Make sure these keys always quit
+	if msg, ok := msg.(tea.KeyMsg); ok {
+		k := msg.String()
+		if k == "q" || k == "ctrl+c" {
+			return m, tea.Quit
+		}
+	}
+
+	// Hand off the message and model to the appropriate update function for the
+	// appropriate view based on the current state.
+	if m.gameState == lost || m.gameState == won {
+		return updateGameOver(msg, m)
+	}
+	return updateGameLoop(msg, m)
+}
+
+func updateGameLoop(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
+	var tilesRevealed int
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
 		case "up", "k":
 			if m.cursor.y > 0 {
 				m.cursor.y--
@@ -56,9 +82,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor.x++
 			}
 		case "enter":
-			if m.field.revealTile(m.cursor.x, m.cursor.y) {
+			if tilesRevealed = m.field.revealTile(m.cursor.x, m.cursor.y); tilesRevealed == -1 {
 				// Player activated a mine and lost
-				return m, tea.Quit
+				m.gameState = lost
+			}
+			m.tilesRemaining -= tilesRevealed
+			if m.tilesRemaining == 0 {
+				m.gameState = won
 			}
 		case " ":
 			m.field.flagTile(m.cursor.x, m.cursor.y)
@@ -67,9 +97,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func updateGameOver(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "q", "ctrl+c":
+			return m, tea.Quit
+		case "r":
+			m = initialModel()
+		}
+
+	}
+	return m, nil
+}
+
 func (m model) View() string {
-	s := "Minesweeper! \n"
-	s += "Use HJKL to move cursor, enter to reveal, space to flag\n"
+	//	s := "Minesweeper! \n"
+	s := banner
+	s += "\nControls:\n"
+	s += "- arrow keys, 'wasd' or 'hjkl' to move cursor\n"
+	s += "- enter to reveal, space to flag\n"
+	s += "- q to quit\n"
+	var field string
 	for y, row := range m.field {
 		for x, col := range row {
 			c := ""
@@ -86,10 +135,19 @@ func (m model) View() string {
 			if x == m.cursor.x && y == m.cursor.y {
 				c = selected.Render(c)
 			}
-			s += c
-
+			field += c
 		}
-		s += "\n"
+
+		if y != len(m.field)-1 {
+			field += "\n"
+		}
+	}
+	s += fieldStyle.Render(field)
+	s += fmt.Sprintf("\n\nUnmined tiles remaining: %d\n", m.tilesRemaining)
+	if m.gameState == won {
+		s += "You won! Play again? (r to retry, q to quit)"
+	} else if m.gameState == lost {
+		s += "You exploded. Play again? (r to retry, q to quit)"
 	}
 	return s
 }

@@ -11,6 +11,12 @@ const (
 	unknownRune = "?"
 )
 
+const (
+	playing = iota
+	lost
+	won
+)
+
 type point struct {
 	x int
 	y int
@@ -24,8 +30,10 @@ type tile struct {
 type mineField [][]tile
 
 type model struct {
-	field  mineField
-	cursor point
+	field          mineField
+	cursor         point
+	gameState      int
+	tilesRemaining int
 }
 
 // newField takes dimensions and returns a 2D array
@@ -124,19 +132,20 @@ func (m mineField) flagTile(x, y int) {
 
 // revealTile reveals a tile on field m and returns true if it's a mine.
 // if the tile has no adjacent mines, surrounding tiles are also revealed.
-func (m mineField) revealTile(col, row int) bool {
+func (m mineField) revealTile(col, row int) int {
 
 	if m[row][col].state == revealed {
 		// tile is already revealed and there's nothing to do
-		return false
+		return 0
 	}
 
 	m[row][col].state = revealed
 	if m[row][col].char == mineRune {
 		// player activated on a mine and died
-		return true
+		return -1
 	}
 
+	tilesRevealed := 1 // the tile revealed by the click
 	if m[row][col].char == "0" {
 		// if the tile is a "0", we need to reveal surrounding tiles, recursing if we encounter another "0"
 		height := len(m)
@@ -149,12 +158,11 @@ func (m mineField) revealTile(col, row int) bool {
 				if posx >= 0 && posx <= width-1 {
 					if posy >= 0 && posy <= height-1 {
 						// Recursively reveal 0 tiles surrounding a 0 tile
-						m.revealTile(posx, posy)
+						tilesRevealed += m.revealTile(posx, posy)
 					}
 				}
 			}
 		}
 	}
-
-	return false
+	return tilesRevealed
 }
