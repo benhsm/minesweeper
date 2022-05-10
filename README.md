@@ -3,7 +3,13 @@
 
 Play Minesweeper in your terminal!
 
-![Demo screenshot](https://i.postimg.cc/L5GGYZYG/demo.png)
+<p align="center">
+    <img src="https://i.postimg.cc/L5GGYZYG/demo.png" alt="Demo Screenshot">
+</p>
+
+<p align="center">
+    <a href="https://goreportcard.com/report/github.com/benhsm/minesweeper"><img src="https://goreportcard.com/badge/benhsm/minesweeper" alt="Go ReportCard"></a>
+</p>
 
 A simple TUI implementation of the immortal desktop video game,
 [Minesweeper](https://en.wikipedia.org/wiki/Minesweeper_(video_game)), made
