@@ -1,7 +1,9 @@
 
+# Minesweeper 🚩💣
+
 Play minesweeper in your terminal!
 
-## Minesweeper 🚩💣
+![Demo screenshot](https://i.postimg.cc/L5GGYZYG/demo.png)
 
 A simple TUI implementation of the immortal desktop video game,
 [minesweeper](https://en.wikipedia.org/wiki/Minesweeper_(video_game)), made
