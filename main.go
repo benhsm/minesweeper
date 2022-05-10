@@ -18,7 +18,9 @@ const banner = `▙▗▌▗
 var (
 	selected   = lipgloss.NewStyle().Foreground(lipgloss.Color("0")).Background(lipgloss.Color("3")).Bold(true)
 	flag       = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))  // Red
-	ok         = lipgloss.NewStyle().Foreground(lipgloss.Color("10")) // Green
+	green      = lipgloss.NewStyle().Foreground(lipgloss.Color("10")) // Green
+	blue       = lipgloss.NewStyle().Foreground(lipgloss.Color("4"))  // Blue
+	red        = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))  // Red
 	fieldStyle = lipgloss.NewStyle().Border(lipgloss.RoundedBorder())
 )
 
@@ -136,7 +138,18 @@ func (m model) View() string {
 				c = fmt.Sprintf(" %s ", unknownRune)
 			case revealed:
 				c = fmt.Sprintf(" %s ", col.char)
-				c = ok.Render(c)
+				switch col.char {
+				case mineRune:
+				case "0":
+				case "1":
+					c = blue.Render(c)
+				case "2":
+					c = green.Render(c)
+				case "3":
+					c = red.Render(c)
+				default:
+					c = red.Render(c)
+				}
 			case flagged:
 				c = fmt.Sprintf(" %s ", flagRune)
 				c = flag.Render(c)
