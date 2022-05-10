@@ -1,12 +1,12 @@
 
 # Minesweeper 🚩💣
 
-Play minesweeper in your terminal!
+Play Minesweeper in your terminal!
 
 ![Demo screenshot](https://i.postimg.cc/L5GGYZYG/demo.png)
 
 A simple TUI implementation of the immortal desktop video game,
-[minesweeper](https://en.wikipedia.org/wiki/Minesweeper_(video_game)), made
+[Minesweeper](https://en.wikipedia.org/wiki/Minesweeper_(video_game)), made
 using the wonderful [Charm libraries](https://charm.sh/libs/),
 [Bubbletea](https://github.com/charmbracelet/bubbletea) and
 [Lipgloss](https://github.com/charmbracelet/lipgloss).

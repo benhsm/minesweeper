@@ -128,7 +128,7 @@ func (m model) View() string {
 	controls := "\nControls:\n"
 	controls += "- arrow keys, 'wasd' or 'hjkl' to move cursor\n"
 	controls += "- spacebar to reveal, 'f' to flag\n"
-	controls += "- q to quit\n"
+	controls += "- 'q' to quit\n"
 	var field string
 	for y, row := range m.field {
 		for x, col := range row {
@@ -168,9 +168,9 @@ func (m model) View() string {
 	s = lipgloss.JoinVertical(lipgloss.Center, s, field)
 	s += fmt.Sprintf("\n\nUnmined tiles remaining: %d\n", m.tilesRemaining)
 	if m.gameState == won {
-		s += "You won! Play again?\n(r to retry, q to quit)"
+		s += "You won! Play again?\n('r' to retry, 'q' to quit)"
 	} else if m.gameState == lost {
-		s += "You lost. Play again?\n(r to retry, q to quit)"
+		s += "You lost. Play again?\n('r' to retry, 'q' to quit)"
 	}
 	s = lipgloss.JoinHorizontal(lipgloss.Center, s, controls)
 	s = lipgloss.PlaceHorizontal(m.width, lipgloss.Center,
