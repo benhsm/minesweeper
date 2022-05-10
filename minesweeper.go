@@ -34,6 +34,13 @@ type model struct {
 	cursor         point
 	gameState      int
 	tilesRemaining int
+	height         int
+	width          int
+}
+
+func (m *model) setSize(w, h int) {
+	m.width = w
+	m.height = h
 }
 
 // newField takes dimensions and returns a 2D array
@@ -85,7 +92,7 @@ func newField(height, width, mines int) [][]int {
 				if posx >= 0 && posx <= width-1 {
 					if posy >= 0 && posy <= height-1 {
 						if field[posy][posx] == -1 {
-							val += 1
+							val++
 						}
 					}
 				}
