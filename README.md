@@ -18,7 +18,7 @@ using the wonderful [Charm libraries](https://charm.sh/libs/),
 [Lipgloss](https://github.com/charmbracelet/lipgloss).
 
 As of now, only the most essential features that make the game playable are
-implemented; the first click is not guaranteed to be safe, and board
+implemented; the first move is not guaranteed to be safe, and board
 configurations in which the player is forced to guess may occur.
 
 ## Installation
