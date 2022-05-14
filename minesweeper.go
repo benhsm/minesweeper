@@ -1,15 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 )
 
+// Constants representing characters used to render certain game elements
 const (
 	mineRune    = "☀"
 	flagRune    = ""
 	unknownRune = "?"
 )
+
+const mine = -1
 
 const (
 	playing = iota
@@ -23,7 +25,7 @@ type point struct {
 }
 
 type tile struct {
-	char  string
+	val   int
 	state int
 }
 
@@ -115,11 +117,7 @@ func newMineField(field [][]int) mineField {
 		col := i % width // Modulus to get height
 		row := i / width // Integer division to get row
 
-		if field[row][col] == -1 {
-			result[row][col].char = mineRune
-		} else {
-			result[row][col].char = fmt.Sprintf("%d", field[row][col])
-		}
+		result[row][col].val = field[row][col]
 		result[row][col].state = hidden
 	}
 
@@ -147,13 +145,13 @@ func (m mineField) revealTile(col, row int) int {
 	}
 
 	m[row][col].state = revealed
-	if m[row][col].char == mineRune {
+	if m[row][col].val == mine {
 		// player activated on a mine and died
 		return -1
 	}
 
 	tilesRevealed := 1 // the tile revealed by the click
-	if m[row][col].char == "0" {
+	if m[row][col].val == 0 {
 		// if the tile is a "0", we need to reveal surrounding tiles, recursing if we encounter another "0"
 		height := len(m)
 		width := len(m[0])

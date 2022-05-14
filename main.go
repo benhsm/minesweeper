@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strconv"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,6 +22,7 @@ var (
 	green      = lipgloss.NewStyle().Foreground(lipgloss.Color("10")) // Green
 	blue       = lipgloss.NewStyle().Foreground(lipgloss.Color("4"))  // Blue
 	red        = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))  // Red
+	noColor    = lipgloss.NewStyle().Foreground(lipgloss.NoColor{})
 	fieldStyle = lipgloss.NewStyle().Border(lipgloss.RoundedBorder())
 )
 
@@ -137,19 +139,23 @@ func (m model) View() string {
 			case hidden:
 				c = fmt.Sprintf(" %s ", unknownRune)
 			case revealed:
-				c = fmt.Sprintf(" %s ", col.char)
-				switch col.char {
-				case mineRune:
-				case "0":
-				case "1":
-					c = blue.Render(c)
-				case "2":
-					c = green.Render(c)
-				case "3":
-					c = red.Render(c)
+				c = strconv.Itoa(col.val)
+				style := noColor
+				switch col.val {
+				case mine:
+					c = mineRune
+				case 0:
+				case 1:
+					style = blue
+				case 2:
+					style = green
+				case 3:
+					style = red
 				default:
-					c = red.Render(c)
+					style = red
 				}
+				c = fmt.Sprintf(" %s ", c)
+				c = style.Render(c)
 			case flagged:
 				c = fmt.Sprintf(" %s ", flagRune)
 				c = flag.Render(c)
