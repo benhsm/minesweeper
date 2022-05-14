@@ -63,10 +63,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Hand off the message and model to the appropriate update function for the
 	// appropriate view based on the current state.
-	if m.gameState == lost || m.gameState == won {
+	switch m.gameState {
+	case lost, won:
 		return updateGameOver(msg, m)
+	default:
+		return updateGameLoop(msg, m)
 	}
-	return updateGameLoop(msg, m)
 }
 
 func updateGameLoop(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
