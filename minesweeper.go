@@ -8,7 +8,7 @@ import (
 const (
 	mineRune    = "☀"
 	flagRune    = ""
-	unknownRune = "?"
+	unknownRune = "⛶"
 )
 
 const mine = -1
