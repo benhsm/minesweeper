@@ -4,20 +4,7 @@ import (
 	"math/rand"
 )
 
-// Constants representing characters used to render certain game elements
-const (
-	mineRune    = "☀"
-	flagRune    = ""
-	unknownRune = "⛶"
-)
-
 const mine = -1
-
-const (
-	playing = iota
-	lost
-	won
-)
 
 type point struct {
 	x int
@@ -29,21 +16,13 @@ type tile struct {
 	state int
 }
 
+const (
+	hidden = iota
+	revealed
+	flagged
+)
+
 type mineField [][]tile
-
-type model struct {
-	field          mineField
-	cursor         point
-	gameState      int
-	tilesRemaining int
-	height         int
-	width          int
-}
-
-func (m *model) setSize(w, h int) {
-	m.width = w
-	m.height = h
-}
 
 // newField takes dimensions and returns a 2D array
 // representing a randomly generated minesweeper playing field.
