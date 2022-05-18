@@ -22,7 +22,11 @@ const (
 	flagged
 )
 
-type mineField [][]tile
+type mineField struct {
+	tiles          [][]tile
+	tilesRemaining int
+	gameState      int
+}
 
 // newField takes dimensions and returns a 2D array
 // representing a randomly generated minesweeper playing field.
@@ -87,29 +91,31 @@ func newField(height, width, mines int) [][]int {
 
 func newMineField(height, width, mines int) mineField {
 	field := newField(height, width, mines)
-	result := make(mineField, height)
-	for i := range result {
-		result[i] = make([]tile, width)
+	tiles := make([][]tile, height)
+	tilesRemaining := (height * width) - mines
+	result := mineField{tiles: tiles, tilesRemaining: tilesRemaining}
+	for i := range result.tiles {
+		result.tiles[i] = make([]tile, width)
 	}
 	for i := 0; i < height*width; i++ {
 		col := i % width // Modulus to get height
 		row := i / width // Integer division to get row
 
-		result[row][col].val = field[row][col]
-		result[row][col].state = hidden
+		result.tiles[row][col].val = field[row][col]
+		result.tiles[row][col].state = hidden
 	}
 
 	return result
 }
 
 func (m mineField) flagTile(x, y int) {
-	switch m[y][x].state {
+	switch m.tiles[y][x].state {
 	case flagged:
-		m[y][x].state = hidden
+		m.tiles[y][x].state = hidden
 	case hidden:
-		m[y][x].state = flagged
+		m.tiles[y][x].state = flagged
 	case revealed:
-		m[y][x].state = revealed
+		m.tiles[y][x].state = revealed
 	}
 }
 
@@ -117,22 +123,22 @@ func (m mineField) flagTile(x, y int) {
 // if the tile has no adjacent mines, surrounding tiles are also revealed.
 func (m mineField) revealTile(col, row int) int {
 
-	if m[row][col].state == revealed {
+	if m.tiles[row][col].state == revealed {
 		// tile is already revealed and there's nothing to do
 		return 0
 	}
 
-	m[row][col].state = revealed
-	if m[row][col].val == mine {
+	m.tiles[row][col].state = revealed
+	if m.tiles[row][col].val == mine {
 		// player activated on a mine and died
 		return -1
 	}
 
 	tilesRevealed := 1 // the tile revealed by the click
-	if m[row][col].val == 0 {
+	if m.tiles[row][col].val == 0 {
 		// if the tile is a "0", we need to reveal surrounding tiles, recursing if we encounter another "0"
-		height := len(m)
-		width := len(m[0])
+		height := len(m.tiles)
+		width := len(m.tiles[0])
 
 		for x := -1; x <= 1; x++ {
 			for y := -1; y <= 1; y++ {

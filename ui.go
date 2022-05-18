@@ -39,12 +39,10 @@ const (
 )
 
 type model struct {
-	field          mineField
-	cursor         point
-	gameState      int
-	tilesRemaining int
-	height         int
-	width          int
+	field  mineField
+	cursor point
+	height int
+	width  int
 }
 
 func (m *model) setSize(w, h int) {
@@ -70,13 +68,11 @@ func newModel() model {
 	// width := 16
 	// mines := 99
 	mineField := newMineField(height, width, mines)
+	mineField.gameState = playing
 
-	tilesRemaining := (height * width) - mines
 	return model{
-		field:          mineField,
-		cursor:         point{0, 0},
-		gameState:      playing,
-		tilesRemaining: tilesRemaining,
+		field:  mineField,
+		cursor: point{0, 0},
 	}
 }
 
@@ -100,7 +96,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Hand off the message and model to the appropriate update function for the
 	// appropriate view based on the current state.
-	switch m.gameState {
+	switch m.field.gameState {
 	case lost, won:
 		return updateGameOver(msg, m)
 	default:
@@ -118,7 +114,7 @@ func updateGameLoop(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.cursor.y--
 			}
 		case "down", "j", "s":
-			if m.cursor.y < len(m.field)-1 {
+			if m.cursor.y < len(m.field.tiles)-1 {
 				m.cursor.y++
 			}
 		case "left", "h", "a":
@@ -126,17 +122,17 @@ func updateGameLoop(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.cursor.x--
 			}
 		case "right", "l", "d":
-			if m.cursor.x < len(m.field[0])-1 {
+			if m.cursor.x < len(m.field.tiles[0])-1 {
 				m.cursor.x++
 			}
 		case " ":
 			if tilesRevealed = m.field.revealTile(m.cursor.x, m.cursor.y); tilesRevealed == -1 {
 				// Player activated a mine and lost
-				m.gameState = lost
+				m.field.gameState = lost
 			}
-			m.tilesRemaining -= tilesRevealed
-			if m.tilesRemaining == 0 {
-				m.gameState = won
+			m.field.tilesRemaining -= tilesRevealed
+			if m.field.tilesRemaining == 0 {
+				m.field.gameState = won
 			}
 		case "f":
 			m.field.flagTile(m.cursor.x, m.cursor.y)
@@ -171,7 +167,7 @@ func (m model) View() string {
 	controls += "- spacebar to reveal, 'f' to flag\n"
 	controls += "- 'q' to quit\n"
 	var field string
-	for y, row := range m.field {
+	for y, row := range m.field.tiles {
 		for x, col := range row {
 			c := ""
 			switch col.state {
@@ -205,16 +201,16 @@ func (m model) View() string {
 			field += c
 		}
 
-		if y != len(m.field)-1 {
+		if y != len(m.field.tiles)-1 {
 			field += "\n"
 		}
 	}
 	field = fieldStyle.Render(field)
 	s = lipgloss.JoinVertical(lipgloss.Center, s, field)
-	s += fmt.Sprintf("\n\nUnmined tiles remaining: %d\n", m.tilesRemaining)
-	if m.gameState == won {
+	s += fmt.Sprintf("\n\nUnmined tiles remaining: %d\n", m.field.tilesRemaining)
+	if m.field.gameState == won {
 		s += "You won! Play again?\n('r' to retry, 'q' to quit)"
-	} else if m.gameState == lost {
+	} else if m.field.gameState == lost {
 		s += "You lost. Play again?\n('r' to retry, 'q' to quit)"
 	}
 	s = lipgloss.JoinHorizontal(lipgloss.Center, s, controls)
