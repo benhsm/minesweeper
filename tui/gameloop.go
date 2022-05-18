@@ -1,4 +1,4 @@
-package main
+package tui
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/benhsm/minesweeper/game"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -38,8 +39,13 @@ const (
 	won
 )
 
+type point struct {
+	x int
+	y int
+}
+
 type model struct {
-	field  mineField
+	field  game.MineField
 	cursor point
 	height int
 	width  int
@@ -50,7 +56,7 @@ func (m *model) setSize(w, h int) {
 	m.height = h
 }
 
-func newModel() model {
+func NewModel() model {
 	rand.Seed(time.Now().UnixNano())
 
 	// Easy
@@ -67,8 +73,8 @@ func newModel() model {
 	// height := 30
 	// width := 16
 	// mines := 99
-	mineField := newMineField(height, width, mines)
-	mineField.gameState = playing
+	mineField := game.NewMineField(height, width, mines)
+	mineField.GameState = playing
 
 	return model{
 		field:  mineField,
@@ -96,7 +102,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Hand off the message and model to the appropriate update function for the
 	// appropriate view based on the current state.
-	switch m.field.gameState {
+	switch m.field.GameState {
 	case lost, won:
 		return updateGameOver(msg, m)
 	default:
@@ -114,7 +120,7 @@ func updateGameLoop(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.cursor.y--
 			}
 		case "down", "j", "s":
-			if m.cursor.y < len(m.field.tiles)-1 {
+			if m.cursor.y < len(m.field.Tiles)-1 {
 				m.cursor.y++
 			}
 		case "left", "h", "a":
@@ -122,20 +128,20 @@ func updateGameLoop(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				m.cursor.x--
 			}
 		case "right", "l", "d":
-			if m.cursor.x < len(m.field.tiles[0])-1 {
+			if m.cursor.x < len(m.field.Tiles[0])-1 {
 				m.cursor.x++
 			}
 		case " ":
-			if tilesRevealed = m.field.revealTile(m.cursor.x, m.cursor.y); tilesRevealed == -1 {
+			if tilesRevealed = m.field.RevealTile(m.cursor.x, m.cursor.y); tilesRevealed == -1 {
 				// Player activated a mine and lost
-				m.field.gameState = lost
+				m.field.GameState = lost
 			}
-			m.field.tilesRemaining -= tilesRevealed
-			if m.field.tilesRemaining == 0 {
-				m.field.gameState = won
+			m.field.TilesRemaining -= tilesRevealed
+			if m.field.TilesRemaining == 0 {
+				m.field.GameState = won
 			}
 		case "f":
-			m.field.flagTile(m.cursor.x, m.cursor.y)
+			m.field.FlagTile(m.cursor.x, m.cursor.y)
 		}
 	}
 	return m, nil
@@ -150,7 +156,7 @@ func updateGameOver(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case "r":
 			height := m.height
 			width := m.width
-			m = newModel()
+			m = NewModel()
 			m.width = width
 			m.height = height
 		}
@@ -167,17 +173,17 @@ func (m model) View() string {
 	controls += "- spacebar to reveal, 'f' to flag\n"
 	controls += "- 'q' to quit\n"
 	var field string
-	for y, row := range m.field.tiles {
+	for y, row := range m.field.Tiles {
 		for x, col := range row {
 			c := ""
-			switch col.state {
-			case hidden:
+			switch col.State {
+			case game.Hidden:
 				c = fmt.Sprintf(" %s ", unknownRune)
-			case revealed:
-				c = strconv.Itoa(col.val)
+			case game.Revealed:
+				c = strconv.Itoa(col.Val)
 				style := noColor
-				switch col.val {
-				case mine:
+				switch col.Val {
+				case game.Mine:
 					c = mineRune
 				case 0:
 				case 1:
@@ -191,7 +197,7 @@ func (m model) View() string {
 				}
 				c = fmt.Sprintf(" %s ", c)
 				c = style.Render(c)
-			case flagged:
+			case game.Flagged:
 				c = fmt.Sprintf(" %s ", flagRune)
 				c = flag.Render(c)
 			}
@@ -201,16 +207,16 @@ func (m model) View() string {
 			field += c
 		}
 
-		if y != len(m.field.tiles)-1 {
+		if y != len(m.field.Tiles)-1 {
 			field += "\n"
 		}
 	}
 	field = fieldStyle.Render(field)
 	s = lipgloss.JoinVertical(lipgloss.Center, s, field)
-	s += fmt.Sprintf("\n\nUnmined tiles remaining: %d\n", m.field.tilesRemaining)
-	if m.field.gameState == won {
+	s += fmt.Sprintf("\n\nUnmined tiles remaining: %d\n", m.field.TilesRemaining)
+	if m.field.GameState == won {
 		s += "You won! Play again?\n('r' to retry, 'q' to quit)"
-	} else if m.field.gameState == lost {
+	} else if m.field.GameState == lost {
 		s += "You lost. Play again?\n('r' to retry, 'q' to quit)"
 	}
 	s = lipgloss.JoinHorizontal(lipgloss.Center, s, controls)

@@ -1,31 +1,26 @@
-package main
+package game
 
 import (
 	"math/rand"
 )
 
-const mine = -1
-
-type point struct {
-	x int
-	y int
-}
+const Mine = -1
 
 type tile struct {
-	val   int
-	state int
+	Val   int
+	State int
 }
 
 const (
-	hidden = iota
-	revealed
-	flagged
+	Hidden = iota
+	Revealed
+	Flagged
 )
 
-type mineField struct {
-	tiles          [][]tile
-	tilesRemaining int
-	gameState      int
+type MineField struct {
+	Tiles          [][]tile
+	TilesRemaining int
+	GameState      int
 }
 
 // newField takes dimensions and returns a 2D array
@@ -89,56 +84,56 @@ func newField(height, width, mines int) [][]int {
 	return field
 }
 
-func newMineField(height, width, mines int) mineField {
+func NewMineField(height, width, mines int) MineField {
 	field := newField(height, width, mines)
 	tiles := make([][]tile, height)
 	tilesRemaining := (height * width) - mines
-	result := mineField{tiles: tiles, tilesRemaining: tilesRemaining}
-	for i := range result.tiles {
-		result.tiles[i] = make([]tile, width)
+	result := MineField{Tiles: tiles, TilesRemaining: tilesRemaining}
+	for i := range result.Tiles {
+		result.Tiles[i] = make([]tile, width)
 	}
 	for i := 0; i < height*width; i++ {
 		col := i % width // Modulus to get height
 		row := i / width // Integer division to get row
 
-		result.tiles[row][col].val = field[row][col]
-		result.tiles[row][col].state = hidden
+		result.Tiles[row][col].Val = field[row][col]
+		result.Tiles[row][col].State = Hidden
 	}
 
 	return result
 }
 
-func (m mineField) flagTile(x, y int) {
-	switch m.tiles[y][x].state {
-	case flagged:
-		m.tiles[y][x].state = hidden
-	case hidden:
-		m.tiles[y][x].state = flagged
-	case revealed:
-		m.tiles[y][x].state = revealed
+func (m MineField) FlagTile(x, y int) {
+	switch m.Tiles[y][x].State {
+	case Flagged:
+		m.Tiles[y][x].State = Hidden
+	case Hidden:
+		m.Tiles[y][x].State = Flagged
+	case Revealed:
+		m.Tiles[y][x].State = Revealed
 	}
 }
 
 // revealTile reveals a tile on field m and returns true if it's a mine.
 // if the tile has no adjacent mines, surrounding tiles are also revealed.
-func (m mineField) revealTile(col, row int) int {
+func (m MineField) RevealTile(col, row int) int {
 
-	if m.tiles[row][col].state == revealed {
+	if m.Tiles[row][col].State == Revealed {
 		// tile is already revealed and there's nothing to do
 		return 0
 	}
 
-	m.tiles[row][col].state = revealed
-	if m.tiles[row][col].val == mine {
+	m.Tiles[row][col].State = Revealed
+	if m.Tiles[row][col].Val == Mine {
 		// player activated on a mine and died
 		return -1
 	}
 
 	tilesRevealed := 1 // the tile revealed by the click
-	if m.tiles[row][col].val == 0 {
+	if m.Tiles[row][col].Val == 0 {
 		// if the tile is a "0", we need to reveal surrounding tiles, recursing if we encounter another "0"
-		height := len(m.tiles)
-		width := len(m.tiles[0])
+		height := len(m.Tiles)
+		width := len(m.Tiles[0])
 
 		for x := -1; x <= 1; x++ {
 			for y := -1; y <= 1; y++ {
@@ -147,7 +142,7 @@ func (m mineField) revealTile(col, row int) int {
 				if posx >= 0 && posx <= width-1 {
 					if posy >= 0 && posy <= height-1 {
 						// Recursively reveal 0 tiles surrounding a 0 tile
-						tilesRevealed += m.revealTile(posx, posy)
+						tilesRevealed += m.RevealTile(posx, posy)
 					}
 				}
 			}
