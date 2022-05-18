@@ -69,7 +69,7 @@ func newModel() model {
 	// height := 30
 	// width := 16
 	// mines := 99
-	mineField := newMineField(newField(height, width, mines))
+	mineField := newMineField(height, width, mines)
 
 	tilesRemaining := (height * width) - mines
 	return model{

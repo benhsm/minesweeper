@@ -85,9 +85,8 @@ func newField(height, width, mines int) [][]int {
 	return field
 }
 
-func newMineField(field [][]int) mineField {
-	height := len(field)
-	width := len(field[0])
+func newMineField(height, width, mines int) mineField {
+	field := newField(height, width, mines)
 	result := make(mineField, height)
 	for i := range result {
 		result[i] = make([]tile, width)
