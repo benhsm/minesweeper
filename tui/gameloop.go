@@ -33,6 +33,13 @@ const (
 	unknownRune = "⛶"
 )
 
+type gameModel struct {
+	field  game.MineField
+	cursor point
+	height int
+	width  int
+}
+
 const (
 	playing = iota
 	lost
@@ -44,19 +51,7 @@ type point struct {
 	y int
 }
 
-type model struct {
-	field  game.MineField
-	cursor point
-	height int
-	width  int
-}
-
-func (m *model) setSize(w, h int) {
-	m.width = w
-	m.height = h
-}
-
-func NewModel() model {
+func newGameModel() gameModel {
 	rand.Seed(time.Now().UnixNano())
 
 	// Easy
@@ -76,41 +71,13 @@ func NewModel() model {
 	mineField := game.NewMineField(height, width, mines)
 	mineField.GameState = playing
 
-	return model{
+	return gameModel{
 		field:  mineField,
 		cursor: point{0, 0},
 	}
 }
 
-func (m model) Init() tea.Cmd {
-	return nil
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Make sure these keys always quit
-	if msg, ok := msg.(tea.KeyMsg); ok {
-		k := msg.String()
-		if k == "q" || k == "ctrl+c" {
-			return m, tea.Quit
-		}
-	}
-
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.setSize(msg.Width, msg.Height)
-	}
-
-	// Hand off the message and model to the appropriate update function for the
-	// appropriate view based on the current state.
-	switch m.field.GameState {
-	case lost, won:
-		return updateGameOver(msg, m)
-	default:
-		return updateGameLoop(msg, m)
-	}
-}
-
-func updateGameLoop(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
+func updateGameLoop(msg tea.Msg, m gameModel) (tea.Model, tea.Cmd) {
 	var tilesRevealed int
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -147,7 +114,7 @@ func updateGameLoop(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func updateGameOver(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
+func updateGameOver(msg tea.Msg, m gameModel) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -156,7 +123,7 @@ func updateGameOver(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 		case "r":
 			height := m.height
 			width := m.width
-			m = NewModel()
+			m = newGameModel()
 			m.width = width
 			m.height = height
 		}
@@ -165,7 +132,7 @@ func updateGameOver(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) View() string {
+func (m gameModel) View() string {
 	//	s := "Minesweeper! \n"
 	s := banner
 	controls := "\nControls:\n"
