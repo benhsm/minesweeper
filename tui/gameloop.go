@@ -36,8 +36,7 @@ const (
 type gameModel struct {
 	field  game.MineField
 	cursor point
-	height int
-	width  int
+	inGame bool
 }
 
 const (
@@ -49,10 +48,6 @@ const (
 type point struct {
 	x int
 	y int
-}
-
-func (m gameModel) Init() tea.Cmd {
-	return nil
 }
 
 func newGameModel() gameModel {
@@ -81,11 +76,7 @@ func newGameModel() gameModel {
 	}
 }
 
-func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.setSize(msg.Width, msg.Height)
-	}
+func (m gameModel) update(msg tea.Msg) (gameModel, tea.Cmd) {
 
 	// Hand off the message and model to the appropriate update function for the
 	// appropriate view based on the current state.
@@ -97,7 +88,7 @@ func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 }
 
-func updateGameLoop(msg tea.Msg, m gameModel) (tea.Model, tea.Cmd) {
+func updateGameLoop(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 	var tilesRevealed int
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -129,30 +120,29 @@ func updateGameLoop(msg tea.Msg, m gameModel) (tea.Model, tea.Cmd) {
 			}
 		case "f":
 			m.field.FlagTile(m.cursor.x, m.cursor.y)
+		case "m":
+			m.inGame = false
 		}
 	}
 	return m, nil
 }
 
-func updateGameOver(msg tea.Msg, m gameModel) (tea.Model, tea.Cmd) {
+func updateGameOver(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "r":
-			height := m.height
-			width := m.width
 			m = newGameModel()
-			m.width = width
-			m.height = height
+			m.inGame = true
 		}
 
 	}
 	return m, nil
 }
 
-func (m gameModel) View() string {
+func (m gameModel) view() string {
 	//	s := "Minesweeper! \n"
 	s := banner
 	controls := "\nControls:\n"
@@ -207,7 +197,5 @@ func (m gameModel) View() string {
 		s += "You lost. Play again?\n('r' to retry, 'q' to quit)"
 	}
 	s = lipgloss.JoinHorizontal(lipgloss.Center, s, controls)
-	s = lipgloss.PlaceHorizontal(m.width, lipgloss.Center,
-		lipgloss.PlaceVertical(m.height, lipgloss.Center, s))
 	return s
 }
