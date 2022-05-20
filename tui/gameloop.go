@@ -11,11 +11,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const banner = `▙▗▌▗                             
-▌▘▌▄ ▛▀▖▞▀▖▞▀▘▌  ▌▞▀▖▞▀▖▛▀▖▞▀▖▙▀▖
-▌ ▌▐ ▌ ▌▛▀ ▝▀▖▐▐▐ ▛▀ ▛▀ ▙▄▘▛▀ ▌  
-▘ ▘▀▘▘ ▘▝▀▘▀▀  ▘▘ ▝▀▘▝▀▘▌  ▝▀▘▘  `
-
 var (
 	selected   = lipgloss.NewStyle().Foreground(lipgloss.Color("0")).Background(lipgloss.Color("3")).Bold(true)
 	flag       = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))  // Red
@@ -144,7 +139,7 @@ func updateGameOver(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 
 func (m gameModel) view() string {
 	//	s := "Minesweeper! \n"
-	s := banner
+	var s string
 	controls := "\nControls:\n"
 	controls += "- arrow keys, 'wasd' or 'hjkl' to move cursor\n"
 	controls += "- spacebar to reveal, 'f' to flag\n"

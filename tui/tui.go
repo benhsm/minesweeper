@@ -5,6 +5,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const banner = `▙▗▌▗                             
+▌▘▌▄ ▛▀▖▞▀▖▞▀▘▌  ▌▞▀▖▞▀▖▛▀▖▞▀▖▙▀▖
+▌ ▌▐ ▌ ▌▛▀ ▝▀▖▐▐▐ ▛▀ ▛▀ ▙▄▘▛▀ ▌  
+▘ ▘▀▘▘ ▘▝▀▘▀▀  ▘▘ ▝▀▘▝▀▘▌  ▝▀▘▘  
+`
+
 const (
 	inGameMenu = iota
 	inGame
@@ -63,6 +69,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m mainModel) View() string {
 	var s string
+	s = banner
 	switch m.sessionState {
 	case inGame:
 		s += m.gameComponent.view()
@@ -78,6 +85,6 @@ func NewModel() mainModel {
 	return mainModel{
 		sessionState:  inGameMenu,
 		gameComponent: newGameModel(),
-		menuComponent: menuModel{inMenu: true},
+		menuComponent: newMenuModel(),
 	}
 }
