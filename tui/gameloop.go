@@ -51,6 +51,10 @@ type point struct {
 	y int
 }
 
+func (m gameModel) Init() tea.Cmd {
+	return nil
+}
+
 func newGameModel() gameModel {
 	rand.Seed(time.Now().UnixNano())
 
@@ -74,6 +78,22 @@ func newGameModel() gameModel {
 	return gameModel{
 		field:  mineField,
 		cursor: point{0, 0},
+	}
+}
+
+func (m gameModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.setSize(msg.Width, msg.Height)
+	}
+
+	// Hand off the message and model to the appropriate update function for the
+	// appropriate view based on the current state.
+	switch m.field.GameState {
+	case lost, won:
+		return updateGameOver(msg, m)
+	default:
+		return updateGameLoop(msg, m)
 	}
 }
 
