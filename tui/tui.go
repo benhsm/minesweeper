@@ -60,6 +60,16 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	default:
 		m.menuComponent, cmd = m.menuComponent.update(msg)
 		if !m.menuComponent.inMenu {
+			switch m.menuComponent.difficulty {
+			case beginner:
+				m.gameComponent = newGameModel(9, 9, 10)
+			case intermediate:
+				m.gameComponent = newGameModel(16, 16, 40)
+			case expert:
+				m.gameComponent = newGameModel(30, 16, 99)
+			default:
+				m.gameComponent = newGameModel(9, 9, 10)
+			}
 			m.sessionState = inGame
 			m.gameComponent.inGame = true
 		}
@@ -84,7 +94,6 @@ func (m mainModel) View() string {
 func NewModel() mainModel {
 	return mainModel{
 		sessionState:  inGameMenu,
-		gameComponent: newGameModel(),
 		menuComponent: newMenuModel(),
 	}
 }

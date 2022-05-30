@@ -45,23 +45,9 @@ type point struct {
 	y int
 }
 
-func newGameModel() gameModel {
+func newGameModel(height, width, mines int) gameModel {
 	rand.Seed(time.Now().UnixNano())
 
-	// Easy
-	height := 9
-	width := 9
-	mines := 10
-
-	// Normal
-	// height := 16
-	// width := 16
-	// mines := 40
-
-	// Expert
-	// height := 30
-	// width := 16
-	// mines := 99
 	mineField := game.NewMineField(height, width, mines)
 	mineField.GameState = playing
 
@@ -129,8 +115,7 @@ func updateGameOver(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "r":
-			m = newGameModel()
-			m.inGame = true
+			m.inGame = false
 		}
 
 	}
