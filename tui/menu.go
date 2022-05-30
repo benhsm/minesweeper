@@ -34,7 +34,7 @@ func (k menuKeyMap) FullHelp() [][]key.Binding {
 	}
 }
 
-var keys = menuKeyMap{
+var menuKeys = menuKeyMap{
 	Up: key.NewBinding(
 		key.WithKeys("up", "k", "w"),
 		key.WithHelp("↑/k/w", "move up"),
@@ -60,7 +60,7 @@ var keys = menuKeyMap{
 		key.WithHelp("q", "quit"),
 	),
 	Select: key.NewBinding(
-		key.WithKeys("enter", "space"),
+		key.WithKeys("enter", " "),
 		key.WithHelp("enter/space", "select"),
 	),
 }
@@ -89,7 +89,7 @@ type menuModel struct {
 
 func newMenuModel() menuModel {
 	return menuModel{
-		keys:        keys,
+		keys:        menuKeys,
 		help:        help.New(),
 		menuChoices: []string{"Difficulty: ", "Play"},
 		difficulty:  beginner,
@@ -121,8 +121,6 @@ func (m menuModel) view() string {
 
 func (m menuModel) update(msg tea.Msg) (menuModel, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.help.Width = msg.Width
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Up):

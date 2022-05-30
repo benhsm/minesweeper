@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/benhsm/minesweeper/game"
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -28,12 +30,6 @@ const (
 	unknownRune = "⛶"
 )
 
-type gameModel struct {
-	field  game.MineField
-	cursor point
-	inGame bool
-}
-
 const (
 	playing = iota
 	lost
@@ -45,6 +41,81 @@ type point struct {
 	y int
 }
 
+type gameKeyMap struct {
+	Up     key.Binding
+	Down   key.Binding
+	Left   key.Binding
+	Right  key.Binding
+	Help   key.Binding
+	Quit   key.Binding
+	Reveal key.Binding
+	Flag   key.Binding
+	Menu   key.Binding
+}
+
+// ShortHelp returns keybindings to be shown in the mini help view. It's part
+// of the key.Map interface.
+func (k gameKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Help, k.Quit, k.Menu}
+}
+
+// FullHelp returns keybindings for the expanded help view. It's part of the
+// key.Map interface.
+func (k gameKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Up, k.Down, k.Left, k.Right}, // first column
+		{k.Reveal, k.Flag},              // Second column
+		{k.Help, k.Quit, k.Menu},        // Third column
+	}
+}
+
+var gameKeys = gameKeyMap{
+	Up: key.NewBinding(
+		key.WithKeys("up", "k", "w"),
+		key.WithHelp("↑/k/w", "move up"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down", "j", "s"),
+		key.WithHelp("↓/j/s", "move down"),
+	),
+	Left: key.NewBinding(
+		key.WithKeys("left", "h", "a"),
+		key.WithHelp("←/h/a", "move left"),
+	),
+	Right: key.NewBinding(
+		key.WithKeys("right", "l", "d"),
+		key.WithHelp("→/l/d", "move left"),
+	),
+	Help: key.NewBinding(
+		key.WithKeys("?"),
+		key.WithHelp("?", "toggle help"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("q", "esc", "ctrl+c"),
+		key.WithHelp("q", "quit"),
+	),
+	Reveal: key.NewBinding(
+		key.WithKeys("enter", " "),
+		key.WithHelp("enter/space", "reveal"),
+	),
+	Flag: key.NewBinding(
+		key.WithKeys("f", ";"),
+		key.WithHelp("f/;", "flag"),
+	),
+	Menu: key.NewBinding(
+		key.WithKeys("m"),
+		key.WithHelp("m", "menu"),
+	),
+}
+
+type gameModel struct {
+	keys   gameKeyMap
+	help   help.Model
+	field  game.MineField
+	cursor point
+	inGame bool
+}
+
 func newGameModel(height, width, mines int) gameModel {
 	rand.Seed(time.Now().UnixNano())
 
@@ -52,6 +123,8 @@ func newGameModel(height, width, mines int) gameModel {
 	mineField.GameState = playing
 
 	return gameModel{
+		keys:   gameKeys,
+		help:   help.New(),
 		field:  mineField,
 		cursor: point{0, 0},
 	}
@@ -73,24 +146,24 @@ func updateGameLoop(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 	var tilesRevealed int
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "up", "k", "w":
+		switch {
+		case key.Matches(msg, m.keys.Up):
 			if m.cursor.y > 0 {
 				m.cursor.y--
 			}
-		case "down", "j", "s":
+		case key.Matches(msg, m.keys.Down):
 			if m.cursor.y < len(m.field.Tiles)-1 {
 				m.cursor.y++
 			}
-		case "left", "h", "a":
+		case key.Matches(msg, m.keys.Left):
 			if m.cursor.x > 0 {
 				m.cursor.x--
 			}
-		case "right", "l", "d":
+		case key.Matches(msg, m.keys.Right):
 			if m.cursor.x < len(m.field.Tiles[0])-1 {
 				m.cursor.x++
 			}
-		case " ":
+		case key.Matches(msg, m.keys.Reveal):
 			if tilesRevealed = m.field.RevealTile(m.cursor.x, m.cursor.y); tilesRevealed == -1 {
 				// Player activated a mine and lost
 				m.field.GameState = lost
@@ -99,9 +172,11 @@ func updateGameLoop(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 			if m.field.TilesRemaining == 0 {
 				m.field.GameState = won
 			}
-		case "f":
+		case key.Matches(msg, m.keys.Flag):
 			m.field.FlagTile(m.cursor.x, m.cursor.y)
-		case "m":
+		case key.Matches(msg, m.keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
+		case key.Matches(msg, m.keys.Menu):
 			m.inGame = false
 		}
 	}
@@ -125,10 +200,6 @@ func updateGameOver(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 func (m gameModel) view() string {
 	//	s := "Minesweeper! \n"
 	var s string
-	controls := "\nControls:\n"
-	controls += "- arrow keys, 'wasd' or 'hjkl' to move cursor\n"
-	controls += "- spacebar to reveal, 'f' to flag\n"
-	controls += "- 'q' to quit\n"
 	var field string
 	for y, row := range m.field.Tiles {
 		for x, col := range row {
@@ -176,6 +247,7 @@ func (m gameModel) view() string {
 	} else if m.field.GameState == lost {
 		s += "You lost. Play again?\n('r' to retry, 'q' to quit)"
 	}
-	s = lipgloss.JoinHorizontal(lipgloss.Center, s, controls)
+
+	s += "\n" + m.help.View(m.keys)
 	return s
 }

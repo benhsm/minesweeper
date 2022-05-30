@@ -46,6 +46,8 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.setSize(msg.Width, msg.Height)
+		m.menuComponent.help.Width = msg.Width
+		m.gameComponent.help.Width = m.width
 	}
 	// Hand off the message and model to the appropriate update function for the
 	// appropriate view based on the current state.
@@ -71,6 +73,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.gameComponent = newGameModel(9, 9, 10)
 			}
 			m.sessionState = inGame
+			m.gameComponent.help.Width = m.width
 			m.gameComponent.inGame = true
 		}
 		return m, cmd
