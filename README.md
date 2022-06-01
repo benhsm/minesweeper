@@ -27,7 +27,7 @@ configurations in which the player is forced to guess may occur.
 
 2. Build it from source
 
-```sh
+```console
 $ git clone https://github.com/benhsm/minesweeper.git
 $ cd minesweeper
 $ go build
