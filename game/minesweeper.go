@@ -21,6 +21,7 @@ type MineField struct {
 	Tiles          [][]tile
 	TilesRemaining int
 	GameState      int
+	Mines          int
 }
 
 // newField takes dimensions and returns a 2D array
@@ -100,6 +101,7 @@ func NewMineField(height, width, mines int) MineField {
 		result.Tiles[row][col].State = Hidden
 	}
 
+	result.Mines = mines
 	return result
 }
 

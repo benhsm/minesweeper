@@ -108,6 +108,41 @@ var gameKeys = gameKeyMap{
 	),
 }
 
+type gameOverKeyMap struct {
+	Quit  key.Binding
+	Retry key.Binding
+	Menu  key.Binding
+}
+
+// ShortHelp returns keybindings to be shown in the mini help view. It's part
+// of the key.Map interface.
+func (k gameOverKeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Quit, k.Retry, k.Menu}
+}
+
+// FullHelp returns keybindings for the expanded help view. It's part of the
+// key.Map interface.
+func (k gameOverKeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Quit, k.Retry, k.Menu},
+	}
+}
+
+var gameOverKeys = gameOverKeyMap{
+	Quit: key.NewBinding(
+		key.WithKeys("q", "esc", "ctrl+c"),
+		key.WithHelp("q", "quit"),
+	),
+	Retry: key.NewBinding(
+		key.WithKeys("r"),
+		key.WithHelp("r", "retry"),
+	),
+	Menu: key.NewBinding(
+		key.WithKeys("m"),
+		key.WithHelp("m", "menu"),
+	),
+}
+
 type gameModel struct {
 	keys   gameKeyMap
 	help   help.Model
@@ -190,6 +225,9 @@ func updateGameOver(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "r":
+			m = newGameModel(len(m.field.Tiles), len(m.field.Tiles[0]), m.field.Mines)
+			m.inGame = true
+		case "m":
 			m.inGame = false
 		}
 
