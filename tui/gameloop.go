@@ -144,11 +144,12 @@ var gameOverKeys = gameOverKeyMap{
 }
 
 type gameModel struct {
-	keys   gameKeyMap
-	help   help.Model
-	field  game.MineField
-	cursor point
-	inGame bool
+	endKeys gameOverKeyMap
+	keys    gameKeyMap
+	help    help.Model
+	field   game.MineField
+	cursor  point
+	inGame  bool
 }
 
 func newGameModel(height, width, mines int) gameModel {
@@ -158,10 +159,11 @@ func newGameModel(height, width, mines int) gameModel {
 	mineField.GameState = playing
 
 	return gameModel{
-		keys:   gameKeys,
-		help:   help.New(),
-		field:  mineField,
-		cursor: point{0, 0},
+		endKeys: gameOverKeys,
+		keys:    gameKeys,
+		help:    help.New(),
+		field:   mineField,
+		cursor:  point{0, 0},
 	}
 }
 
@@ -221,13 +223,13 @@ func updateGameLoop(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 func updateGameOver(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "ctrl+c":
+		switch {
+		case key.Matches(msg, m.endKeys.Quit):
 			return m, tea.Quit
-		case "r":
+		case key.Matches(msg, m.endKeys.Retry):
 			m = newGameModel(len(m.field.Tiles), len(m.field.Tiles[0]), m.field.Mines)
 			m.inGame = true
-		case "m":
+		case key.Matches(msg, m.endKeys.Menu):
 			m.inGame = false
 		}
 
@@ -281,11 +283,15 @@ func (m gameModel) view() string {
 	s = lipgloss.JoinVertical(lipgloss.Center, s, field)
 	s += fmt.Sprintf("\n\nUnmined tiles remaining: %d\n", m.field.TilesRemaining)
 	if m.field.GameState == won {
-		s += "You won! Play again?\n('r' to retry, 'q' to quit)"
+		s += "You won! Play again?"
 	} else if m.field.GameState == lost {
-		s += "You lost. Play again?\n('r' to retry, 'q' to quit)"
+		s += "You lost. Play again?"
 	}
 
-	s += "\n" + m.help.View(m.keys)
+	if m.field.GameState == won || m.field.GameState == lost {
+		s += "\n" + m.help.View(m.endKeys)
+	} else {
+		s += "\n" + m.help.View(m.keys)
+	}
 	return s
 }
