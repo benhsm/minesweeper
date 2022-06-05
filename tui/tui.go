@@ -75,6 +75,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.sessionState = inGame
 			m.gameComponent.help.Width = m.width
 			m.gameComponent.inGame = true
+			cmd = m.gameComponent.stopwatch.Start()
 		}
 		return m, cmd
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/benhsm/minesweeper/game"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/stopwatch"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -144,12 +145,13 @@ var gameOverKeys = gameOverKeyMap{
 }
 
 type gameModel struct {
-	endKeys gameOverKeyMap
-	keys    gameKeyMap
-	help    help.Model
-	field   game.MineField
-	cursor  point
-	inGame  bool
+	endKeys   gameOverKeyMap
+	keys      gameKeyMap
+	help      help.Model
+	field     game.MineField
+	cursor    point
+	inGame    bool
+	stopwatch stopwatch.Model
 }
 
 func newGameModel(height, width, mines int) gameModel {
@@ -158,13 +160,15 @@ func newGameModel(height, width, mines int) gameModel {
 	mineField := game.NewMineField(height, width, mines)
 	mineField.GameState = playing
 
-	return gameModel{
-		endKeys: gameOverKeys,
-		keys:    gameKeys,
-		help:    help.New(),
-		field:   mineField,
-		cursor:  point{0, 0},
+	result := gameModel{
+		endKeys:   gameOverKeys,
+		keys:      gameKeys,
+		help:      help.New(),
+		field:     mineField,
+		cursor:    point{0, 0},
+		stopwatch: stopwatch.New(),
 	}
+	return result
 }
 
 func (m gameModel) update(msg tea.Msg) (gameModel, tea.Cmd) {
@@ -217,24 +221,31 @@ func updateGameLoop(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
 			m.inGame = false
 		}
 	}
-	return m, nil
+	var cmd tea.Cmd
+	m.stopwatch, cmd = m.stopwatch.Update(msg)
+	return m, cmd
 }
 
 func updateGameOver(msg tea.Msg, m gameModel) (gameModel, tea.Cmd) {
+	cmd := m.stopwatch.Stop()
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.endKeys.Quit):
 			return m, tea.Quit
 		case key.Matches(msg, m.endKeys.Retry):
+			width := m.help.Width
 			m = newGameModel(len(m.field.Tiles), len(m.field.Tiles[0]), m.field.Mines)
+			m.help.Width = width
 			m.inGame = true
+			cmd = m.stopwatch.Start()
 		case key.Matches(msg, m.endKeys.Menu):
 			m.inGame = false
 		}
 
 	}
-	return m, nil
+	return m, cmd
+
 }
 
 func (m gameModel) view() string {
@@ -282,6 +293,7 @@ func (m gameModel) view() string {
 	field = fieldStyle.Render(field)
 	s = lipgloss.JoinVertical(lipgloss.Center, s, field)
 	s += fmt.Sprintf("\n\nUnmined tiles remaining: %d\n", m.field.TilesRemaining)
+	s += fmt.Sprintf("Time elapsed: %v\n", m.stopwatch.View())
 	if m.field.GameState == won {
 		s += "You won! Play again?"
 	} else if m.field.GameState == lost {
@@ -293,5 +305,6 @@ func (m gameModel) view() string {
 	} else {
 		s += "\n" + m.help.View(m.keys)
 	}
+
 	return s
 }
