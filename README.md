@@ -33,3 +33,11 @@ $ cd minesweeper
 $ go build
 $ ./minesweeper
 ```
+
+## As an SSH app
+
+Using the [Wish](https://github.com/charmbracelet/wish) library, the program can also be served over SSH.
+
+```console
+$ minesweeper serve
+```
